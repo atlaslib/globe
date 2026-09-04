@@ -1,0 +1,33 @@
+{
+  "name": "@atlaslib/globe",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A static, agent-native spatial data workbench built with DuckDB-Wasm, Globe.gl, and WebMCP.",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/atlaslib/globe.git"
+  },
+  "homepage": "https://github.com/atlaslib/globe#readme",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "vendor": "node scripts/vendor-runtime.mjs",
+    "preserve": "npm run vendor",
+    "serve": "node serve.mjs",
+    "build:bootstrap": "node scripts/build-bootstrap-scene.mjs",
+    "prebuild": "npm run vendor",
+    "build": "node scripts/build-bootstrap-scene.mjs && node scripts/build-static.mjs",
+    "check": "node --check app.js && node --check webmcp.js && node --check serve.mjs && node --check scripts/vendor-runtime.mjs && node --check scripts/build-bootstrap-scene.mjs && node --check scripts/build-static.mjs && node --check scripts/check-data.mjs && node scripts/check-webmcp.mjs",
+    "check:data": "node scripts/check-data.mjs"
+  },
+  "devDependencies": {
+    "@duckdb/duckdb-wasm": "1.33.1-dev57.0",
+    "@noble/hashes": "1.8.0",
+    "esbuild": "0.20.2",
+    "globe.gl": "2.46.2",
+    "web-worker": "1.2.0"
+  }
+}

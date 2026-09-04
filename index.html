@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#070a0d" />
+    <style>html,body{margin:0;min-height:100%;background:#070a0d;color-scheme:dark}</style>
+    <meta name="atlas-build" content="development" />
+    <meta name="description" content="Explore spatial datasets with DuckDB, a globe, and WebMCP." />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Atlas — spatial data workbench" />
+    <meta property="og:description" content="Explore spatial datasets with DuckDB, a globe, and WebMCP." />
+    <meta property="og:image" content="/assets/og-preview-watercolor-v2.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Atlas, a watercolor globe connecting global places, rivers, oceans, storms, earthquakes, and tsunamis through data." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Atlas — spatial data workbench" />
+    <meta name="twitter:description" content="Explore spatial datasets with DuckDB, a globe, and WebMCP." />
+    <meta name="twitter:image" content="/assets/og-preview-watercolor-v2.jpg" />
+    <title>Atlas — spatial data workbench</title>
+    <link rel="icon" href="data:," />
+    <script>
+      (() => {
+        const OPENING_SCENE_IDS = ["theme_parks", "heritage_landmarks", "mcdonalds", "starbucks", "ikea", "earthquakes", "major_rivers", "tsunamis", "atlantic_storms", "ocean_loops"];
+        const requested = new URLSearchParams(location.search).get("scene");
+        const randomValue = globalThis.crypto?.getRandomValues
+          ? globalThis.crypto.getRandomValues(new Uint32Array(1))[0]
+          : Math.floor(Math.random() * 2 ** 32);
+        const sceneId = OPENING_SCENE_IDS.includes(requested) ? requested : OPENING_SCENE_IDS[randomValue % OPENING_SCENE_IDS.length];
+        window.__atlasOpeningSceneId = sceneId;
+        window.__atlasOpeningScenePromise = fetch(`data/showcases/${sceneId}.json?v=development`, { cache: "force-cache" }).then((response) => {
+          if (!response.ok) throw new Error(`Could not load opening scene ${sceneId} (${response.status}).`);
+          return response.json();
+        });
+      })();
+    </script>
+    <link rel="preload" href="vendor/globe.gl.min.js" as="script" fetchpriority="high" />
+    <link rel="preload" href="assets/textures/earth-night-poster.jpg" as="image" crossorigin="anonymous" fetchpriority="high" />
+    <link rel="modulepreload" href="app.js" fetchpriority="high" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="sr-status" aria-live="polite">
+      <span class="status-dot" id="status-dot"></span>
+      <span id="system-status">Starting DuckDB…</span>
+      <span id="webmcp-status">WebMCP checking…</span>
+      <span id="engine-version">DuckDB-Wasm</span>
+    </div>
+
+    <div class="workspace">
+      <main class="stage" aria-label="Interactive globe">
+        <div id="globe" class="globe"></div>
+        <div class="stage-vignette" aria-hidden="true"></div>
+        <div class="stage-hud">
+          <div>
+            <h2 id="scene-headline">Around the world</h2>
+            <p class="scene-subheadline" id="scene-subheadline">One subject, seen globally.</p>
+          </div>
+          <div class="stage-actions">
+            <button class="icon-button" id="showcase-button" type="button" aria-label="Explore example scenes" aria-controls="showcase-menu" aria-expanded="false" title="Example scenes">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 1.25 4.2L17 9l-3.75 1.8L12 15l-1.25-4.2L7 9l3.75-1.8L12 3ZM5 14l.8 2.2L8 17l-2.2.8L5 20l-.8-2.2L2 17l2.2-.8L5 14Zm14-2 .8 2.2 2.2.8-2.2.8L19 18l-.8-2.2L16 15l2.2-.8L19 12Z"/></svg>
+            </button>
+            <button class="icon-button" id="fit-view" type="button" aria-label="Fit globe to current result" title="Fit result">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5m13 5h5v-5"/></svg>
+            </button>
+          </div>
+        </div>
+        <section class="showcase-menu" id="showcase-menu" aria-label="Example scenes" hidden>
+          <div class="showcase-heading">
+            <strong>Example scenes</strong>
+            <span>Choose one kind of thing to see on the globe.</span>
+          </div>
+          <div class="showcase-list" id="showcase-list"></div>
+        </section>
+        <div class="stage-legend" id="stage-legend" aria-label="Scene layers"></div>
+        <button class="result-peek" id="result-peek" type="button" aria-controls="workspace-sheet" aria-expanded="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 12h16M4 19h16M8 5v14"/></svg>
+          <span class="result-peek-copy">
+            <strong id="result-peek-title">Map result</strong>
+            <span id="result-peek-count">…</span>
+          </span>
+        </button>
+        <section class="selection-card" id="selection-card" aria-live="polite" hidden>
+          <p class="eyebrow">Selected</p>
+          <strong id="selection-title"></strong>
+          <p id="selection-detail"></p>
+          <div class="selection-nav">
+            <span id="selection-position"></span>
+            <div>
+              <button id="previous-selection" type="button" aria-label="Previous result">←</button>
+              <button id="next-selection" type="button" aria-label="Next result">→</button>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <div class="sheet-backdrop" id="sheet-backdrop" hidden></div>
+      <aside class="workspace-sheet" id="workspace-sheet" aria-label="Results and data" hidden>
+        <header class="sheet-header">
+          <div>
+            <h2>Explore</h2>
+            <span id="sheet-engine-status">Preparing local data…</span>
+          </div>
+          <button class="sheet-close" id="sheet-close" type="button" aria-label="Close panel">×</button>
+        </header>
+
+        <div class="sheet-tabs" role="tablist" aria-label="Explore data">
+          <button id="results-tab" type="button" role="tab" aria-controls="results-panel" aria-selected="true" data-sheet-tab="results">Results</button>
+          <button id="data-tab" type="button" role="tab" aria-controls="data-panel" aria-selected="false" data-sheet-tab="data">Data <span id="dataset-count">0</span></button>
+          <button id="sql-tab" type="button" role="tab" aria-controls="sql-panel" aria-selected="false" data-sheet-tab="sql">SQL</button>
+        </div>
+
+        <div class="sheet-content">
+          <section class="sheet-panel results-section" id="results-panel" role="tabpanel" aria-labelledby="results-tab">
+            <div class="results-heading">
+              <div>
+                <p class="eyebrow" id="result-kind">Current result</p>
+                <h2 id="result-title">Waiting for data</h2>
+              </div>
+              <span id="result-count" class="result-count">—</span>
+            </div>
+            <p class="result-summary" id="result-summary">The first result will appear here.</p>
+            <div class="table-wrap">
+              <table id="result-table">
+                <thead></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <nav class="pagination" aria-label="Result pages">
+              <button id="previous-page" type="button" aria-label="Previous page">←</button>
+              <span id="page-label">Page —</span>
+              <button id="next-page" type="button" aria-label="Next page">→</button>
+            </nav>
+            <details class="provenance" id="provenance-details">
+              <summary>Provenance</summary>
+              <div id="provenance-content"></div>
+            </details>
+          </section>
+
+          <section class="sheet-panel data-panel" id="data-panel" role="tabpanel" aria-labelledby="data-tab" hidden>
+            <div class="panel-intro">
+              <h2>Bundled data</h2>
+              <p>Open a dataset to inspect its fields, sample records, and provenance.</p>
+            </div>
+            <div id="dataset-list" class="dataset-list" aria-live="polite"></div>
+          </section>
+
+          <section class="sheet-panel query-section" id="sql-panel" role="tabpanel" aria-labelledby="sql-tab" hidden>
+          <div class="panel-heading compact">
+            <div>
+              <p class="eyebrow">Advanced</p>
+              <h2>Query with SQL</h2>
+            </div>
+            <kbd>⌘ ↵</kbd>
+          </div>
+          <div class="example-row" aria-label="Example queries">
+            <button type="button" data-example="loops">Persistent loops</button>
+            <button type="button" data-example="earthquakes">Earthquakes</button>
+            <button type="button" data-example="join">Cross-dataset</button>
+            <button type="button" data-example="orbit">Orbital commons</button>
+            <button type="button" data-example="rivers">Rivers</button>
+          </div>
+          <textarea id="sql-editor" spellcheck="false" aria-label="SQL query"></textarea>
+          <div class="query-actions">
+            <div class="map-controls">
+              <label for="layer-type">Layer</label>
+              <select id="layer-type">
+                <option value="points">Points</option>
+                <option value="paths">Paths</option>
+                <option value="rings">Rings</option>
+                <option value="polygons">Polygons</option>
+              </select>
+            </div>
+            <button class="run-button" id="run-query" type="button">
+              Run query
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>
+            </button>
+          </div>
+          <p id="query-error" class="query-error" role="alert" hidden></p>
+        </section>
+        </div>
+      </aside>
+    </div>
+
+    <script>
+      const reportStartupError = (reason) => {
+        const target = document.querySelector("#query-error");
+        if (!target) return;
+        target.hidden = false;
+        target.textContent = `The app could not start: ${reason?.message || reason || "unknown error"}`;
+      };
+      window.addEventListener("error", (event) => reportStartupError(event.error || event.message));
+      window.addEventListener("unhandledrejection", (event) => reportStartupError(event.reason));
+    </script>
+    <script id="bootstrap-scene" type="application/json"></script>
+    <script src="vendor/globe.gl.min.js"></script>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

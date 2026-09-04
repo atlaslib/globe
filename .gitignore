@@ -1,0 +1,14 @@
+node_modules/
+out/
+
+# Generated from pinned npm dependencies by `npm run vendor`.
+vendor/duckdb-browser.mjs
+vendor/duckdb-browser-eh.worker.js
+vendor/duckdb-browser-mvp.worker.js
+vendor/duckdb-eh.wasm
+vendor/duckdb-mvp.wasm
+vendor/globe.gl.min.js
+vendor/licenses/
+
+.DS_Store
+npm-debug.log*
