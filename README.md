@@ -4,6 +4,10 @@
 
 Atlas is a static spatial data workbench designed for a person and an agent to use together. It runs DuckDB-Wasm and Globe.gl entirely in the browser, keeps every dataset in one local SQL catalog, and exposes the same query and visualization actions through WebMCP.
 
+![IKEA locations around the world in Atlas](assets/screenshots/atlas-ikea-worldwide.png)
+
+*Explore 362 IKEA locations worldwide, with each point opening a compact detail card.*
+
 The implementation deliberately stays small: vanilla HTML, CSS, and JavaScript; no application framework; no server-side database; and no runtime CDN requests. The checked-in datasets are compact snapshots with open redistribution terms and source-level provenance.
 
 ## Run locally
@@ -50,7 +54,7 @@ The local DuckDB catalog contains ten relations:
 
 `data/sources.json` records the publisher, source and download URL, retrieval date, transformation, caveats, row count, and SHA-256 digest for every relation. See [DATA_LICENSES.md](DATA_LICENSES.md) for the redistribution terms and required attribution.
 
-The repository intentionally omits raw acquisition caches, duplicated CSV exports, generated build output, screenshots, and datasets without sufficiently clear open redistribution terms.
+The repository intentionally omits raw acquisition caches, duplicated CSV exports, generated build output, and datasets without sufficiently clear open redistribution terms.
 
 ## WebMCP surface
 

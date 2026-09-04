@@ -104,7 +104,9 @@ for (const file of rootFiles) await copy(file);
 for (const file of dataFiles) await copy(join("data", file));
 await cp(join(root, "data", "showcases"), join(output, "data", "showcases"), { recursive: true });
 for (const file of vendorFiles) await copy(join("vendor", file));
-await cp(join(root, "assets"), join(output, "assets"), { recursive: true });
+await cp(join(root, "assets", "datasets"), join(output, "assets", "datasets"), { recursive: true });
+await cp(join(root, "assets", "textures"), join(output, "assets", "textures"), { recursive: true });
+await copy(join("assets", "og-preview-watercolor-v2.jpg"));
 await cp(join(root, "third_party"), join(output, "third_party"), { recursive: true });
 for (const file of wasmFiles) await compressWasm(file);
 
