@@ -1467,7 +1467,18 @@ function selectRow(rowIndex, resultId = state.activeResultId) {
   const encoding = activeEncoding();
   elements.selectionCard.hidden = false;
   elements.selectionTitle.textContent = rowLabel(row, encoding);
-  elements.selectionDetail.textContent = result.columns.slice(0, 4).map((column) => `${column}: ${displayValue(row[column])}`).join(" · ");
+  const detailColumns = result.columns.filter((column) => column !== encoding.label).slice(0, 4);
+  elements.selectionDetail.replaceChildren(...detailColumns.map((column) => {
+    const field = document.createElement("div");
+    field.className = "selection-field";
+    const key = document.createElement("dt");
+    key.textContent = column;
+    const value = document.createElement("dd");
+    value.textContent = displayValue(row[column]);
+    value.title = String(row[column] ?? "");
+    field.append(key, value);
+    return field;
+  }));
   elements.selectionPosition.textContent = `${formatNumber(rowIndex + 1)} of ${formatNumber(result.rows.length)}`;
   elements.previousSelection.disabled = rowIndex <= 0;
   elements.nextSelection.disabled = rowIndex >= result.rows.length - 1;

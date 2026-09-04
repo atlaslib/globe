@@ -181,9 +181,14 @@ button svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke
 .result-peek-copy strong { display: block; overflow: hidden; font-size: 12px; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; }
 .result-peek-copy span { display: block; margin-top: 2px; color: var(--lime); font: 11px/1.2 var(--mono); }
 
-.selection-card { position: absolute; z-index: 8; left: 24px; bottom: 52px; width: min(300px, calc(100% - 48px)); background: rgba(8, 16, 21, .9); border: 1px solid var(--line); border-left: 3px solid var(--lime); border-radius: 6px; padding: 11px 13px; backdrop-filter: blur(10px); box-shadow: 0 8px 28px rgba(0, 0, 0, .32); }
+.selection-card { position: absolute; z-index: 8; left: 24px; bottom: 52px; width: min(300px, calc(100% - 48px)); background: rgba(8, 16, 21, .9); border: 1px solid var(--line); border-radius: 6px; padding: 11px 13px 11px 16px; backdrop-filter: blur(10px); box-shadow: 0 8px 28px rgba(0, 0, 0, .32); }
+.selection-card::before { content: ""; position: absolute; top: 12px; bottom: 12px; left: 0; width: 3px; background: var(--lime); }
 .selection-card strong { display: block; margin-top: 5px; font-size: 16px; }
-#selection-detail { margin: 5px 0 0; color: var(--muted); font: 12px/1.45 var(--mono); }
+#selection-detail { display: grid; grid-template-columns: minmax(72px, 96px) minmax(0, 1fr); gap: 3px 10px; margin: 9px 0 0; font: 11px/1.4 var(--mono); }
+.selection-field { display: contents; }
+.selection-field dt { overflow: hidden; color: #71868b; text-overflow: ellipsis; white-space: nowrap; }
+.selection-field dt::after { content: ":"; }
+.selection-field dd { min-width: 0; margin: 0; overflow-wrap: anywhere; color: #c3d0d2; }
 .selection-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line); color: var(--muted); font: 11px/1 var(--mono); }
 .selection-nav div { display: flex; gap: 5px; }
 .selection-nav button { width: 28px; height: 26px; color: var(--text); background: transparent; border: 1px solid var(--line-bright); border-radius: 4px; cursor: pointer; }
